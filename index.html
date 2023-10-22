@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css">
+    <style>
+        .user-message {
+            background-color: #c2e2ff;
+        }
+        .response-message {
+            background-color: #d9f7be;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <input type="text" id="messageInput" class="form-control" placeholder="Type a message">
+                </div>
+            </div>
+            <div class="col-2">
+                <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div id="chatArea" style="min-height: 200px; border: 1px solid #ccc; padding: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// Define a function to send a message
+async function sendMessage() {
+    // Get the message input from the user
+    var messageInput = document.getElementById('messageInput');
+    var message = messageInput.value;
+
+    // Check if the message is not empty
+    if (message) {
+        // Get the chat area element
+        var chatArea = document.getElementById('chatArea');
+
+        // Create a user message element
+        var userMessage = document.createElement('div');
+        userMessage.className = 'user-message';
+        userMessage.innerText = 'You: ' + message;
+
+        // Append the user message to the chat area
+        chatArea.appendChild(userMessage);
+
+        // Get AI response
+        try {
+            const aiResponse = await getAIResponse(message);
+
+            // Create a response message element
+            var responseMessage = document.createElement('div');
+            responseMessage.className = 'response-message';
+            responseMessage.innerText = 'Server: ' + aiResponse;
+
+            // Append the AI response message to the chat area
+            chatArea.appendChild(responseMessage);
+        } catch (error) {
+            console.error('Error:', error);
+            // Handle the error (e.g., display an error message in the chat area)
+        }
+
+        // Clear the message input
+        messageInput.value = '';
+    }
+}
+
+// Define a function to get AI response from the server
+async function getAIResponse(prompt) {
+    // Remove the code that constructs messagesList from pastUserInputs
+    const messagesList = [{"role": "user", "content": prompt}];
+
+    const response = await fetch(getServerEndpoint(), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({'prompt': prompt, 'messages': messagesList}),
+    });
+
+    if (response.status === 200) {
+        const data = await response.json();
+        console.log('this is the data:', data['data']);
+        return data['data'];
+    } else {
+        throw new Error('Failed to fetch response from server');
+    }
+}
+
+// Define a function to get the server endpoint
+function getServerEndpoint() {
+    return 'http://0.0.0.0:3000/ask';
+}
+
+// Call sendMessage to initiate the chat
+sendMessage();
+
+
+    </script>
+
+</body>
+</html>
